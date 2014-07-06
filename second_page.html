@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            var websocket = (function () {
+                             "use strict";
+
+                             window.WebSocket = window.WebSocket || window.MozWebSocket;
+                             var websocket = new window.WebSocket('ws://127.0.0.1:1976', 'web-protocol');
+                             websocket.onmessage = function (message) {
+                             var chat = document.getElementById("chat");
+                             chat.innerHTML += message.data;
+                             chat.innerHTML += "<br>";
+                             };
+                             return {
+                             submitChat: function (text) {
+                             websocket.send(text);
+                             }
+                             };
+                             }());
+
+            </script>
+    </head>
+    <body>
+        <h1>Chat box</h1>
+        <label for='inputText'>Input:</label>
+        <input id='inputText'type='text' onkeypress='if(event.keyCode===13){ websocket.submitChat(inputText.value); inputText.value = ""; return false; }  return true;' /><input id='root-button' type='button' value='send' onclick='websocket.submitChat(inputText.value); inputText.value = "";' /><br>
+        <span id='chat' />
+    </body>
+</html>
