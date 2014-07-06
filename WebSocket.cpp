@@ -50,6 +50,12 @@ namespace {
                       libwebsocket_callback_reasons reason, void *data,
                       void *in, size_t len)
     {
+        std::cout << readableEnums[reason] << " callback_http" << std::endl;
+
+        if(reason == LWS_CALLBACK_GET_THREAD_ID) {
+            return static_cast<int>(std::hash<std::thread::id>()(std::this_thread::get_id()));
+        }
+
         // We serve a static file in this example, no http needed.
         return 0;
     }
