@@ -9,7 +9,7 @@ EXECUTABLE=cppServer
 all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(LDFLAGS) $(OBJECTS) -pthread -o $@
 
 .PHONY: $(WEB_FRAMEWORK)
 
