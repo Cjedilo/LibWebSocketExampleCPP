@@ -7,6 +7,7 @@
 #include <set>
 #include <thread>
 #include <deque>
+#include <condition_variable>
 
 class ChatService : public WebSocket::Delegate {
 public:

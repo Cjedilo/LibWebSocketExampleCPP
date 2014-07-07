@@ -4,6 +4,7 @@
 #include <libwebsockets.h>
 
 #include <thread>
+#include <mutex>
 #include <map>
 #include <queue>
 

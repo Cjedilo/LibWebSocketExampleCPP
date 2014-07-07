@@ -1,8 +1,9 @@
 #include "WebSocket.h"
 
 #include <iostream>
+#include <cstring>
 
-//#define REQUEST_ON_THREAD_2
+#define REQUEST_ON_THREAD_2
 
 #ifndef REQUEST_ON_THREAD_2
 #define CANCEL_ON_THREAD_2
