@@ -7,27 +7,29 @@ ChatService::ChatService() :
 {
 }
 
+ChatService::~ChatService()
+{
+    running = false;
+    condition.notify_one();
+    worker.join();
+}
+
 void ChatService::newClient(unsigned int id)
 {
-    std::cout << "new one: " << id << std::endl;
-
+    std::lock_guard<std::mutex> lock(clientLock);
     clients.insert(id);
 }
 
 void ChatService::message(unsigned int id, const std::string& msg)
 {
-    std::cout << id << " says: " << msg << std::endl;
-    {
-        std::lock_guard<std::mutex> lock(queueLock);
-        queue.push_back(msg);
-        condition.notify_one();
-    }
+    std::lock_guard<std::mutex> lock(queueLock);
+    queue.push_back(msg);
+    condition.notify_one();
 }
 
 void ChatService::clientGone(unsigned int id)
 {
-    std::cout << "That was: " << id << std::endl;
-
+    std::lock_guard<std::mutex> lock(clientLock);
     clients.erase(id);
 }
 
@@ -51,11 +53,14 @@ void ChatService::run()
             std::swap(toSend, queue);
         }
 
-        for(auto i : clients) {
-            for(auto& msg : toSend) {
-                std::cout << "Telling: " << msg << " to " << i << std::endl;
+        {
+            std::lock_guard<std::mutex> lock(clientLock);
+            for(auto i : clients) {
+                for(auto& msg : toSend) {
+                    std::cout << "Telling: " << msg << " to " << i << std::endl;
 
-                send(i,msg);
+                    send(i,msg);
+                }
             }
         }
     }

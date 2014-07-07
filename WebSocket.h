@@ -7,7 +7,6 @@
 #include <map>
 #include <queue>
 
-
 class WebSocket {
 public:
     class Delegate {
@@ -31,6 +30,7 @@ public:
     std::queue<std::string> fetchMessageQueue(unsigned int id);
 private:
     void service();
+    bool init();
 public:
     static std::map<libwebsocket_context*,WebSocket*>    instances;
 private:

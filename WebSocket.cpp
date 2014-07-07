@@ -105,19 +105,18 @@ namespace {
     }
 
     static struct libwebsocket_protocols protocols[] = {
-        /* first protocol must always be HTTP handler */
         {
-            "http-only",   // name
-            callback_http, // callback
-            sizeof(int)              // per_session_data_size
-        },
-        {
-            "web-protocol", // protocol name - very important!
-            callback_web,   // callback
+            "http-only",
+            callback_http,
             sizeof(int)
         },
         {
-            NULL, NULL, 0   /* End of list */
+            "web-protocol",
+            callback_web,
+            sizeof(int)
+        },
+        {
+            NULL, NULL, 0
         }
     };
     
@@ -152,16 +151,22 @@ void WebSocket::WebSocket::Delegate::setSocket(WebSocket* socket)
 
 std::map<libwebsocket_context*,WebSocket*>    WebSocket::instances;
 
+bool WebSocket::init()
+{
+    instances[context] = this;
+    delegate.setSocket(this);
+
+    return true;
+}
+
 WebSocket::WebSocket(Delegate& delegate, unsigned short port) :
     delegate(delegate),
     port(port),
     socketInfo(makeInfo(port)),
     context(libwebsocket_create_context(&socketInfo)),
-    shouldService(true),
+    shouldService(init()),
     serviceThread(&WebSocket::service, this)
 {
-    instances[context] = this;
-    delegate.setSocket(this);
 }
 
 WebSocket::~WebSocket()
@@ -170,6 +175,7 @@ WebSocket::~WebSocket()
     libwebsocket_cancel_service(context);
     serviceThread.join();
     libwebsocket_context_destroy(context);
+    instances.erase(context);
 }
 
 void WebSocket::join()

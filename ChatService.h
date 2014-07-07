@@ -11,12 +11,14 @@
 class ChatService : public WebSocket::Delegate {
 public:
     ChatService();
+    ~ChatService();
 private:
     void run();
     void newClient(unsigned int id);
     void message(unsigned int id, const std::string& msg);
     void clientGone(unsigned int id);
 
+    std::mutex clientLock;
     std::set<unsigned int> clients;
     std::mutex queueLock;
     std::deque<std::string> queue;
