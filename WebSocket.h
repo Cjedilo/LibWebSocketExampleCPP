@@ -32,8 +32,6 @@ public:
 private:
     void service();
     bool init();
-public:
-    static std::map<libwebsocket_context*,WebSocket*>    instances;
 private:
     std::mutex queueLock;
     std::map<unsigned int, std::queue<std::string>> messageQueue;

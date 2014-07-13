@@ -72,18 +72,18 @@ namespace {
 
         if(reason == LWS_CALLBACK_ESTABLISHED) {
             id = ++unique;
-            WebSocket::instances[context]->newClient(id,wsi);
+            static_cast<WebSocket*>(libwebsocket_context_user(context))->newClient(id,wsi);
         }
 
         if(reason == LWS_CALLBACK_RECEIVE) {
             std::string msg(reinterpret_cast<char*>(in), len);
 
-            WebSocket::instances[context]->message(id,msg);
+            static_cast<WebSocket*>(libwebsocket_context_user(context))->message(id,msg);
         }
 
         if(reason == LWS_CALLBACK_SERVER_WRITEABLE)
         {
-            std::queue<std::string> toSend = WebSocket::instances[context]->fetchMessageQueue(id);
+            std::queue<std::string> toSend = static_cast<WebSocket*>(libwebsocket_context_user(context))->fetchMessageQueue(id);
             std::cout << "Got callback" << std::endl;
 
             while (!toSend.empty()) {
@@ -99,7 +99,7 @@ namespace {
 
         if(reason == LWS_CALLBACK_CLOSED)
         {
-            WebSocket::instances[context]->clientGone(id);
+            static_cast<WebSocket*>(libwebsocket_context_user(context))->clientGone(id);
         }
         
         return 0;
@@ -121,7 +121,7 @@ namespace {
         }
     };
     
-    lws_context_creation_info makeInfo(unsigned short port)
+    lws_context_creation_info makeInfo(unsigned short port, WebSocket* socket)
     {
         lws_context_creation_info info;
 
@@ -133,6 +133,8 @@ namespace {
 
         info.gid = -1;
         info.uid = -1;
+
+        info.user = socket;
 
         info.options = 0;
 
@@ -150,11 +152,8 @@ void WebSocket::WebSocket::Delegate::setSocket(WebSocket* socket)
     this->socket = socket;
 }
 
-std::map<libwebsocket_context*,WebSocket*>    WebSocket::instances;
-
 bool WebSocket::init()
 {
-    instances[context] = this;
     delegate.setSocket(this);
 
     return true;
@@ -163,7 +162,7 @@ bool WebSocket::init()
 WebSocket::WebSocket(Delegate& delegate, unsigned short port) :
     delegate(delegate),
     port(port),
-    socketInfo(makeInfo(port)),
+    socketInfo(makeInfo(port, this)),
     context(libwebsocket_create_context(&socketInfo)),
     shouldService(init()),
     serviceThread(&WebSocket::service, this)
@@ -176,7 +175,6 @@ WebSocket::~WebSocket()
     libwebsocket_cancel_service(context);
     serviceThread.join();
     libwebsocket_context_destroy(context);
-    instances.erase(context);
 }
 
 void WebSocket::join()
